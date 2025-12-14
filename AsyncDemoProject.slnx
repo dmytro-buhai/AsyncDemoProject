@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AsyncDemoProject/AsyncDemoProject.csproj" />
+  <Project Path="StateMachineSimpleExample/StateMachineSimpleExample.csproj" Id="6dc6b050-b1a1-4abf-b83f-896a7f57709d" />
 </Solution>
