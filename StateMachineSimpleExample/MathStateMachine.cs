@@ -1,59 +1,39 @@
 ﻿public class MathStateMachine
 {
     private int _state = -1;
-    private IntAwaiter _awaiter; // Holds the reference to the running calc
-
-    // We need a field to store the local variable 'value' 
-    // because it needs to survive between function calls.
+    private IntAwaiter? _awaiter;
     private int _localVariableValue;
 
-    public void MoveNext()
+    public async void MoveNext()
     {
-        if (_state == -1) // START
+        IntAwaiter awaiter;
+        if (_state != 0)
         {
             MachineConsoleOutput("[StateMachine] Starting calculation...");
-
-            // 1. Create the operation
             var calc = new SlowCalculator(10, 20);
+            awaiter = calc.GetAwaiter();
 
-            // 2. Get the awaiter
-            _awaiter = calc.GetAwaiter();
-
-            if (!_awaiter.IsCompleted)
+            if (!awaiter.IsCompleted)
             {
-                _state = 0; // "Paused at await #1"
-
-                // 3. Register callback and RETURN immediately
+                _state = 0;
+                _awaiter = awaiter;
                 MachineConsoleOutput("[StateMachine] Suspending thread...");
                 _awaiter.OnCompleted(MoveNext);
                 return;
             }
         }
-
-        if (_state == 0) // RESUME
+        else
         {
             MachineConsoleOutput("[StateMachine] Waking up...");
-
-            // 4. EXTRACT THE DATA
-            // This is equivalent to: int value = await ...
-            _localVariableValue = _awaiter.GetResult();
-
-            // 5. Continue with the rest of the code
-            MachineConsoleOutput($"[StateMachine] Result is: {_localVariableValue}");
+            awaiter = _awaiter;
+            _awaiter = default;
 
             _state = -2; // Done
         }
+
+        _localVariableValue = awaiter.GetResult();
+        MachineConsoleOutput($"[StateMachine] Result is: {_localVariableValue}");
     }
-
-
-
-
-
-
-
-
-
-
 
     private void MachineConsoleOutput(string message)
     {
